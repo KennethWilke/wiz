@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
-use tera::Tera;
+use anyhow::Result;
+use tera::{Tera, Context};
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -11,4 +12,14 @@ lazy_static! {
             }
         }
     };
+}
+
+pub fn render_template(template_name: &str, context: &Context) -> Result<String> {
+    Ok(TEMPLATES.render(template_name, context)?)
+}
+
+pub fn render_to_file(template_name: &str, context: &Context, path: &str) -> Result<()> {
+    let contents = render_template(template_name, context)?;
+    std::fs::write(path, contents)?;
+    Ok(())
 }
