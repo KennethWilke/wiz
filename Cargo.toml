@@ -7,6 +7,7 @@ description = "A management tool for logic design tinkering"
 readme = "README.md"
 repository = "https://github.com/KennethWilke/wiz"
 license = "MIT"
+include = ["templates"]
 
 [dependencies]
 tera = "1"

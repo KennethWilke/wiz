@@ -4,7 +4,11 @@ use tera::{Context, Tera};
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
-        match Tera::new("templates/**/*") {
+        let template_path = format!(
+            "{}/templates/**/*",
+            std::env::var("WIZ_PATH").expect("Failed to get WIZ_PATH env var")
+        );
+        match Tera::new(&template_path) {
             Ok(t) => t,
             Err(e) => {
                 println!("Parsing error(s): {}", e);

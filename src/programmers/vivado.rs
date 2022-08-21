@@ -1,6 +1,9 @@
 use anyhow::{anyhow, Result};
 use serde::Serialize;
-use std::process::{Command, Stdio};
+use std::{
+    env,
+    process::{Command, Stdio},
+};
 use tera::Context;
 
 use super::Programmer;
@@ -16,7 +19,7 @@ impl VivadoProgrammer {
 
 #[derive(Serialize, Debug)]
 pub struct ProgrammingContext {
-    project_name: String,
+    bitstream_path: String,
     target_device: String,
 }
 
@@ -28,15 +31,25 @@ impl Programmer for VivadoProgrammer {
             Some(path) => path,
             None => return Err(anyhow!("failed to get path to tmpdir")),
         };
+        let bitstream_path = manifest.get_bitstream_path()?;
         let context = ProgrammingContext {
-            project_name: manifest.package_name.clone(),
-            target_device: manifest
-                .target_device
-                .expect("target_device expected"),
+            bitstream_path,
+            target_device: manifest.target_device.expect("target_device expected"),
         };
         let context = Context::from_serialize(context)?;
         render_to_file("vivado/program.tcl", &context, build_tcl_path)?;
-        vivado_batch(build_tcl_path)
+        let pwd = env::current_dir()?;
+        env::set_current_dir(&build_path)?;
+        match vivado_batch("program.tcl") {
+            Ok(_) => {
+                env::set_current_dir(pwd)?;
+                Ok(())
+            }
+            Err(error) => {
+                env::set_current_dir(pwd)?;
+                Err(error)
+            }
+        }
     }
 }
 

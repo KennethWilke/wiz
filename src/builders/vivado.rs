@@ -34,14 +34,23 @@ impl Builder for VivadoBuilder {
             Some(path) => path,
             None => return Err(anyhow!("failed to get path to tmpdir")),
         };
+
+        let project_name = manifest.package_name.clone();
+        let target_part = manifest
+            .target_part
+            .as_ref()
+            .expect("expected target_part")
+            .to_string();
+        let sources = manifest.get_source_files()?;
+        let constraints = manifest.get_constraint_files()?;
+        let num_jobs = num_cpus::get();
+
         let context = BuildContext {
-            project_name: manifest.package_name.clone(),
-            target_part: manifest.target_part.expect("expected target_part"),
-            sources: manifest.source_files.expect("expected source_files"),
-            constraints: manifest
-                .constraint_files
-                .expect("expected constraint_files"),
-            num_jobs: num_cpus::get(),
+            project_name,
+            target_part,
+            sources,
+            constraints,
+            num_jobs,
         };
         let context = Context::from_serialize(context)?;
         render_to_file("vivado/build.tcl", &context, build_tcl_path)?;
@@ -55,10 +64,7 @@ impl Builder for VivadoBuilder {
             }
         };
         let bitstream_path = format!("vivado/{}.runs/impl_1/top.bit", manifest.package_name);
-        fs::copy(
-            bitstream_path,
-            manifest.bitstream_path.expect("expected bitstream_path"),
-        )?;
+        fs::copy(bitstream_path, manifest.get_bitstream_path()?)?;
 
         env::set_current_dir(pwd)?;
         Ok(())

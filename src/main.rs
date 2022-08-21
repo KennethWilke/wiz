@@ -1,4 +1,5 @@
 mod builders;
+mod helpers;
 mod manifest;
 mod programmers;
 mod simulators;

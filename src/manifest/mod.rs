@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     builders::{vivado::VivadoBuilder, Builder},
+    helpers,
     programmers::{vivado::VivadoProgrammer, Programmer},
 };
 
@@ -15,9 +16,9 @@ pub struct Manifest {
     pub programmer: Option<String>,
     pub target_part: Option<String>,
     pub target_device: Option<String>,
-    pub source_files: Option<Vec<String>>,
-    pub constraint_files: Option<Vec<String>>,
-    pub bitstream_path: Option<String>,
+    source_files: Option<Vec<String>>,
+    constraint_files: Option<Vec<String>>,
+    bitstream_path: Option<String>,
 }
 
 impl Manifest {
@@ -48,5 +49,38 @@ impl Manifest {
             "vivado" => VivadoProgrammer::new(),
             unhandled => return Err(anyhow!(format!("Unhandled programmer: {}", unhandled))),
         })
+    }
+
+    pub fn get_source_files(&self) -> Result<Vec<String>> {
+        match &self.source_files {
+            Some(sources) => {
+                let mut files = vec![];
+                for file in sources {
+                    files.push(helpers::get_absolute_path(file))
+                }
+                Ok(files)
+            }
+            None => Ok(vec![]),
+        }
+    }
+
+    pub fn get_bitstream_path(&self) -> Result<String> {
+        match &self.bitstream_path {
+            Some(path) => Ok(path.to_string()),
+            None => Err(anyhow!("No bitstream path defined")),
+        }
+    }
+
+    pub fn get_constraint_files(&self) -> Result<Vec<String>> {
+        match &self.constraint_files {
+            Some(constraints) => {
+                let mut files = vec![];
+                for file in constraints {
+                    files.push(helpers::get_absolute_path(file))
+                }
+                Ok(files)
+            }
+            None => Ok(vec![]),
+        }
     }
 }
