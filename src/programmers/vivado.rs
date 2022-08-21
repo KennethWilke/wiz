@@ -1,10 +1,10 @@
-use std::process::{Command, Stdio};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use serde::Serialize;
+use std::process::{Command, Stdio};
 use tera::Context;
 
-use crate::{manifest::Manifest, templates::render_to_file};
 use super::Programmer;
+use crate::{manifest::Manifest, templates::render_to_file};
 
 pub struct VivadoProgrammer {}
 
@@ -17,7 +17,7 @@ impl VivadoProgrammer {
 #[derive(Serialize, Debug)]
 pub struct ProgrammingContext {
     project_name: String,
-    target_device: String
+    target_device: String,
 }
 
 impl Programmer for VivadoProgrammer {
@@ -26,11 +26,13 @@ impl Programmer for VivadoProgrammer {
         let build_tcl_path = build_path.join("program.tcl");
         let build_tcl_path = match build_tcl_path.to_str() {
             Some(path) => path,
-            None => return Err(anyhow!("failed to get path to tmpdir"))
+            None => return Err(anyhow!("failed to get path to tmpdir")),
         };
-        let context = ProgrammingContext{
+        let context = ProgrammingContext {
             project_name: manifest.package_name.clone(),
-            target_device: manifest.target_device.expect("target_device expected").clone()
+            target_device: manifest
+                .target_device
+                .expect("target_device expected"),
         };
         let context = Context::from_serialize(context)?;
         render_to_file("vivado/program.tcl", &context, build_tcl_path)?;

@@ -1,10 +1,13 @@
-use std::{process::{Command, Stdio}, fs, env};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use serde::Serialize;
+use std::{
+    env, fs,
+    process::{Command, Stdio},
+};
 use tera::Context;
 
-use crate::{manifest::Manifest, templates::render_to_file};
 use super::Builder;
+use crate::{manifest::Manifest, templates::render_to_file};
 
 pub struct VivadoBuilder {}
 
@@ -20,7 +23,7 @@ pub struct BuildContext {
     target_part: String,
     sources: Vec<String>,
     constraints: Vec<String>,
-    num_jobs: usize
+    num_jobs: usize,
 }
 
 impl Builder for VivadoBuilder {
@@ -29,28 +32,33 @@ impl Builder for VivadoBuilder {
         let build_tcl_path = build_path.join("build.tcl");
         let build_tcl_path = match build_tcl_path.to_str() {
             Some(path) => path,
-            None => return Err(anyhow!("failed to get path to tmpdir"))
+            None => return Err(anyhow!("failed to get path to tmpdir")),
         };
-        let context = BuildContext{
+        let context = BuildContext {
             project_name: manifest.package_name.clone(),
             target_part: manifest.target_part.expect("expected target_part"),
             sources: manifest.source_files.expect("expected source_files"),
-            constraints: manifest.constraint_files.expect("expected constraint_files"),
-            num_jobs: num_cpus::get()
+            constraints: manifest
+                .constraint_files
+                .expect("expected constraint_files"),
+            num_jobs: num_cpus::get(),
         };
         let context = Context::from_serialize(context)?;
         render_to_file("vivado/build.tcl", &context, build_tcl_path)?;
         let pwd = env::current_dir()?;
         env::set_current_dir(&build_path)?;
         match vivado_batch("build.tcl") {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(error) => {
                 env::set_current_dir(pwd)?;
-                return Err(error)
+                return Err(error);
             }
         };
         let bitstream_path = format!("vivado/{}.runs/impl_1/top.bit", manifest.package_name);
-        fs::copy(bitstream_path, manifest.bitstream_path.expect("expected bitstream_path"))?;
+        fs::copy(
+            bitstream_path,
+            manifest.bitstream_path.expect("expected bitstream_path"),
+        )?;
 
         env::set_current_dir(pwd)?;
         Ok(())

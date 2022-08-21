@@ -1,6 +1,6 @@
-use lazy_static::lazy_static;
 use anyhow::Result;
-use tera::{Tera, Context};
+use lazy_static::lazy_static;
+use tera::{Context, Tera};
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
