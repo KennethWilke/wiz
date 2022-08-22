@@ -1,5 +1,3 @@
-pub mod vivado;
-
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -9,8 +7,8 @@ use anyhow::{anyhow, Result};
 
 use crate::manifest::Manifest;
 
-pub trait Builder {
-    fn build(&self, manifest: Manifest) -> Result<()>;
+pub trait Programmer {
+    fn program(&self, manifest: Manifest) -> Result<()>;
 
     fn get_build_directory(&self, path: Option<String>) -> Result<PathBuf> {
         let build_path = match path {
@@ -26,6 +24,9 @@ pub trait Builder {
     }
 
     fn subcommand(&self, command: String, _args: Vec<&[u8]>) -> Result<()> {
-        Err(anyhow!(format!("Builder subcommand {} not found", command)))
+        Err(anyhow!(format!(
+            "Programmer subcommand {} not found",
+            command
+        )))
     }
 }

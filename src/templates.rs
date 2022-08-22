@@ -1,5 +1,8 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use lazy_static::lazy_static;
+use serde::Serialize;
 use tera::{Context, Tera};
 
 lazy_static! {
@@ -18,11 +21,12 @@ lazy_static! {
     };
 }
 
-pub fn render_template(template_name: &str, context: &Context) -> Result<String> {
-    Ok(TEMPLATES.render(template_name, context)?)
+pub fn render_template(template_name: &str, context: impl Serialize) -> Result<String> {
+    let context = Context::from_serialize(context)?;
+    Ok(TEMPLATES.render(template_name, &context)?)
 }
 
-pub fn render_to_file(template_name: &str, context: &Context, path: &str) -> Result<()> {
+pub fn render_to_file(template_name: &str, context: impl Serialize, path: PathBuf) -> Result<()> {
     let contents = render_template(template_name, context)?;
     std::fs::write(path, contents)?;
     Ok(())

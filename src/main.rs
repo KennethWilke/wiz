@@ -1,15 +1,15 @@
-mod builders;
+mod builder;
 mod helpers;
 mod manifest;
-mod programmers;
-mod simulators;
+mod programmer;
 mod templates;
+mod vivado;
 
 use anyhow::Result;
-use builders::Builder;
+use builder::Builder;
 use clap::{Parser, Subcommand};
 
-use crate::{manifest::Manifest, programmers::Programmer};
+use crate::{manifest::Manifest, programmer::Programmer};
 
 #[derive(Parser, Debug)]
 #[clap(version, about, long_about = None)]
@@ -26,7 +26,6 @@ struct Cli {
 enum Command {
     Build,
     Program,
-    Simulate,
 }
 
 fn main() -> Result<()> {
@@ -38,27 +37,27 @@ fn main() -> Result<()> {
     match args.command {
         Build => build(manifest),
         Program => program(manifest),
-        Simulate => simulate(manifest),
     }
 }
 
 fn build(manifest: Manifest) -> Result<()> {
-    let builder_name = manifest.builder.as_ref().expect("expected builder");
-    println!("Building '{}' with {}", manifest.package_name, builder_name);
+    let builder_name = manifest.get_builder_name()?;
+    println!(
+        "Building '{}' with {}",
+        manifest.get_package_name(),
+        builder_name
+    );
     let builder = manifest.get_builder()?;
     builder.build(manifest)
 }
 
 fn program(manifest: Manifest) -> Result<()> {
-    let programmer_name = manifest.programmer.as_ref().expect("expected programmer");
+    let programmer_name = manifest.get_programmer_name()?;
     println!(
         "Programming '{}' with {}",
-        manifest.package_name, programmer_name
+        manifest.get_package_name(),
+        programmer_name
     );
     let programmer = manifest.get_programmer()?;
     programmer.program(manifest)
-}
-
-fn simulate(_manifest: Manifest) -> Result<()> {
-    todo!("simmmy")
 }
