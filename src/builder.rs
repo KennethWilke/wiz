@@ -23,7 +23,10 @@ pub trait Builder {
         }
     }
 
-    fn subcommand(&self, command: String, _args: Vec<&[u8]>) -> Result<()> {
-        Err(anyhow!(format!("Builder subcommand {} not found", command)))
+    fn subcommand(&self, _manifest: Manifest, command: String, _args: Vec<&[u8]>) -> Result<()> {
+        Err(anyhow!(format!(
+            "Builder subcommand \"{}\" not found",
+            command
+        )))
     }
 }

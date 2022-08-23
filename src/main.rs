@@ -24,7 +24,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 #[clap()]
 enum Command {
-    Build,
+    Build { subcommand: Option<String> },
     Program,
 }
 
@@ -35,7 +35,10 @@ fn main() -> Result<()> {
 
     use Command::*;
     match args.command {
-        Build => build(manifest),
+        Build { subcommand } => match subcommand {
+            Some(subcommand) => build_subcommand(manifest, subcommand),
+            None => build(manifest),
+        },
         Program => program(manifest),
     }
 }
@@ -49,6 +52,18 @@ fn build(manifest: Manifest) -> Result<()> {
     );
     let builder = manifest.get_builder()?;
     builder.build(manifest)
+}
+
+fn build_subcommand(manifest: Manifest, subcommand: String) -> Result<()> {
+    let builder_name = manifest.get_builder_name()?;
+    println!(
+        "Building '{}' with {} {}",
+        manifest.get_package_name(),
+        builder_name,
+        subcommand
+    );
+    let builder = manifest.get_builder()?;
+    builder.subcommand(manifest, subcommand, vec![])
 }
 
 fn program(manifest: Manifest) -> Result<()> {

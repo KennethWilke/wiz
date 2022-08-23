@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serde::Serialize;
 
 use crate::{builder::Builder, manifest::Manifest};
 
+use self::schematic::show_schematic;
+
 mod build;
 mod generate_pins;
+mod schematic;
 
 pub struct VivadoBuilder {}
 
@@ -59,5 +62,16 @@ impl Builder for VivadoBuilder {
     fn build(&self, manifest: Manifest) -> Result<()> {
         let build_path = self.get_build_directory(Some("build-vivado".into()))?;
         build::build(build_path, manifest)
+    }
+
+    fn subcommand(&self, manifest: Manifest, command: String, _args: Vec<&[u8]>) -> Result<()> {
+        let build_path = self.get_build_directory(Some("build-vivado".into()))?;
+        match command.as_str() {
+            "schematic" => show_schematic(build_path, manifest),
+            other => Err(anyhow!(format!(
+                "Vivado builder has no \"{}\" subcommand",
+                other
+            ))),
+        }
     }
 }
