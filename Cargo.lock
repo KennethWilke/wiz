@@ -785,6 +785,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "toml_edit"
 version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -989,7 +998,7 @@ dependencies = [
  "lazy_static",
  "num_cpus",
  "serde",
- "serde_json",
  "tera",
+ "toml",
  "toml_edit",
 ]

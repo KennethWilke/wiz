@@ -17,7 +17,7 @@ struct Cli {
     #[clap(subcommand)]
     command: Command,
 
-    #[clap(short, long, value_parser, default_value = "wiz.json")]
+    #[clap(short, long, value_parser, default_value = "wiz.toml")]
     manifest: String,
 }
 
@@ -30,8 +30,14 @@ enum Command {
 
 fn main() -> Result<()> {
     let args = Cli::parse();
-    let manifest = Manifest::load(&args.manifest)?;
-    //println!("{:#?}", manifest);
+    let manifest = match Manifest::load(&args.manifest) {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            println!("Failed to load manifest file \"{}\"", &args.manifest);
+            return Err(error)
+        }
+    };
+    println!("{}", toml::to_string_pretty(&manifest)?);
 
     use Command::*;
     match args.command {

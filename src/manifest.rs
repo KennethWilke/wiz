@@ -2,11 +2,21 @@ use std::{collections::HashMap, fs::File, io::Read};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use toml::Value;
 
 use crate::{
     builder::Builder, helpers, programmer::Programmer, vivado::builder::VivadoBuilder,
     vivado::programmer::VivadoProgrammer,
 };
+
+/*
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Dependency {
+    Path(String),
+    Git(String)
+}
+*/
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Manifest {
@@ -19,6 +29,8 @@ pub struct Manifest {
     constraint_files: Option<Vec<String>>,
     bitstream_path: Option<String>,
     pins: Option<HashMap<String, String>>,
+    pin_ref: Option<HashMap<String, String>>,
+    dependencies: Option<HashMap<String, Value>>
 }
 
 impl Manifest {
@@ -26,7 +38,7 @@ impl Manifest {
         let mut file = File::open(path.to_string())?;
         let mut buffer = String::new();
         file.read_to_string(&mut buffer)?;
-        Ok(serde_json::from_str(&buffer)?)
+        Ok(toml::from_str(&buffer)?)
     }
 
     pub fn get_package_name(&self) -> String {
